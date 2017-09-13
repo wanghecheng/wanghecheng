@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<style type="text/css">
+			.wrap{
+				width: 320px;
+				height: 480px;
+				background: url(img/game_bg.jpg) no-repeat 0 0;
+				margin: 0 auto;
+				position: relative;
+			}
+			.score{
+				color: white;
+				position: absolute;
+				top: 11px;
+				left:60px;
+				font-size: 15px;
+			}
+			.left_time{
+				width: 180px;
+				height: 16px;
+				background: url(img/progress.png) no-repeat 0 0;
+				position: absolute;
+				top: 66px;
+				left: 63px;
+			}
+			.menu,.gameover{
+				text-align: center;
+				position: absolute;
+				font-size: 30px;
+				color:cornflowerblue;
+				left: 66px;
+				top: 215px;				
+			}
+			.menu>div{
+				cursor: pointer;
+			}
+			.gameover{
+				display: none;
+			}
+			.wolves>img{
+				position: absolute;				
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<div class="score">0</div>
+			<div class="left_time"></div>
+			<div class="wolves">				
+			</div>
+			<div class="menu">
+				<div class="start">开始</div>
+				<div>游戏操作说明</div>
+			</div>
+			<div class="gameover">
+				<div>GAME OVER</div>
+				<div>您的得分是:<span></span></div>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var posArr = [
+						{l:"96px",t:"114px"},
+						{l:"184px",t:"141px"},
+						{l:"16px",t:"159px"},
+						{l:"14px",t:"220px"},
+						{l:"100px",t:"191px"},
+						{l:"196px",t:"211px"},
+						{l:"202px",t:"295px"},
+						{l:"26px",t:"293px"},
+						{l:"116px",t:"274px"}
+					];
+		//获取元素
+		var score =document.querySelector(".score");
+		var left_time=document.querySelector(".left_time");
+		var wolves = document.querySelector(".wolves");
+		var start = document.querySelector(".start");
+		var endScore  = document.querySelector(".gameover div span");
+		var gameover = document.querySelector(".gameover");
+		var menu = document.querySelector(".menu");
+		var score_set = 0;//记录分数
+		var timer_loop;//循环运行wolf的定时器
+		
+
+		function wolf(){
+			//变量
+			var  num=0;
+			 bool = true;
+			var im = new Image();
+			im.record=rand(0,100)>80?"x":"h";
+			im.src=im.record=="h"?"img/h"+num+".png":"img/x"+num+".png";
+			while(bool)
+			{
+				im.posIndex = rand(0,8);
+				var ims = wolves.children;
+				for(var i=0;i<ims.length;i++)
+				{
+					if(parseInt(posArr[im.posIndex].l)==ims[i].offsetLeft)
+					{
+						break;
+					}
+				}
+				if(i==ims.length)
+				{
+					bool=false;
+				}
+			}
+			
+			im.style.left = posArr[im.posIndex].l;
+			im.style.top = posArr[im.posIndex].t;
+			wolves.appendChild(im);
+			
+			//向上德缓动
+			im.timerUp = setInterval(function(){
+				num++;
+				if(num>4)
+				{
+					clearInterval(im.timerUp);
+				}
+				im.src = im.record=="h"?"img/h"+num+".png":"img/x"+num+".png";
+			},50)
+			
+			//向下得缓动
+			im.timerOut = setTimeout(function(){
+				im.timerDown = setInterval(function(){
+					num--;
+					if(num==0)
+					{
+						clearInterval(im.timerDown);	
+						im.remove();
+					}
+					im.src = im.record=="h"?"img/h"+num+".png":"img/x"+num+".png";
+				},50)
+			},800)
+			im.bool= true;
+			//点击事件
+			im.onclick=function(){
+				if(im.bool)
+				{
+					im.bool=false;
+					var count = 6;
+						im.src = im.record=="h"?"img/h"+count+".png":"img/x"+count+".png";	
+						//清除定时器
+						clearInterval(im.timerUp);
+						clearInterval(im.timerDown);
+						clearTimeout(im.timerOut);
+						//被点到后缓动效果
+						im.timerClick = setInterval(function(){
+							count++;
+							if(count>8)
+							{
+								clearInterval(im.timerClick);
+							}
+							im.src = im.record=="h"?"img/h"+count+".png":"img/x"+count+".png";	
+						},50)
+						im.timerClickOut=setTimeout(function(){
+							im.remove();
+						},500)
+						
+						//分值判断
+						score_set = im.record=="h"?score_set+10:score_set-10;
+						score.innerText=score_set;
+				}
+			}
+		}
+		
+		var length=180;
+		start.onclick=function(){			
+			menu.style.display="none";
+			loop();
+			var timerCount=setInterval(function(){
+				length--;
+				if(length==0)
+				{
+					clearInterval(timerCount);
+					clearInterval(timer_loop);
+					setTimeout(function(){
+						gameover.style.display="block";						
+						endScore.innerText=score_set;
+					},1000)
+				}
+				left_time.style.width=length+"px";			
+			},100)
+		}
+		
+		
+		function loop(){
+			timer_loop = setInterval(function(){
+				wolf();
+			},500)
+		}	
+		
+		
+		function rand(min,max){
+			return Math.floor(Math.random()*(max+1-min)+min);
+		}
+	</script>
+</html>
